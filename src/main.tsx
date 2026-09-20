@@ -53,22 +53,22 @@ function App() {
   const advice = [
     {
       title: 'Quando a crítica vier',
-      trigger: '“Eu estrago tudo.”',
+      trigger: '“Eu estrago tudo...”',
       copy: 'Pare e troque a sentença por uma pergunta: “o que aconteceu, exatamente?” Fatos são mais gentis e mais úteis do que rótulos.',
     },
     {
       title: 'Quando a solidão apertar',
-      trigger: '“Não tenho ninguém.”',
+      trigger: '“Não tenho ninguém...”',
       copy: 'Não tente resolver a vida inteira de uma vez. Escolha um contato seguro, uma mensagem simples ou um lugar onde você se sinta um pouco menos sozinha.',
     },
     {
       title: 'Quando tudo parecer urgente',
-      trigger: '“Preciso agir agora.”',
+      trigger: '“Preciso agir agora...”',
       copy: 'Adie decisões importantes por uma noite. Água, comida, banho, sono e uma conversa podem mudar o tamanho que uma dor parece ter.',
     },
     {
       title: 'Quando vier a comparação',
-      trigger: '“Todo mundo está melhor do que eu.”',
+      trigger: '“Todo mundo está melhor do que eu...”',
       copy: 'A vida de alguém vista de fora nunca mostra o quadro inteiro. Volte para o que é possível hoje: um passo seu ainda é um passo válido.',
     },
     {
@@ -124,8 +124,8 @@ function App() {
             <p>{advice[activeAdvice].copy}</p>
           </div>
           <i>✦</i>
+          <p className="support-note">Se a dor ficar grande demais ou surgir vontade de se machucar, procure alguém de confiança ou o CVV: <a href="tel:188">188</a>.</p>
         </aside>
-        <p className="support-note" data-reveal>Se a dor ficar grande demais ou surgir vontade de se machucar, procure alguém de confiança ou o CVV: <a href="tel:188">188</a>.</p>
       </section>
 
       <section className="mirrors section" id="espelhos" aria-labelledby="mirrors-title">
@@ -134,8 +134,8 @@ function App() {
           <h2 id="mirrors-title">Nem todo reflexo<br />merece ser <em>acreditado.</em></h2>
         </div>
         <div className="shard-field" aria-label="Frases críticas fragmentadas">
-          {shards.map((shard, index) => <article className={`${shard.cls}${!showOverview && activeFragment === index ? ' selected' : ''}`} key={shard.text} data-reveal tabIndex={0} role="button" aria-pressed={!showOverview && activeFragment === index} onClick={() => { setActiveFragment(index); setShowOverview(false) }} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { setActiveFragment(index); setShowOverview(false) } }}><span>{shard.text}</span></article>)}
-          <div className={`shard-core${showOverview ? ' selected' : ''}`} data-reveal tabIndex={0} role="button" aria-label="Imagem de uma mulher cercada por frases difíceis" aria-pressed={showOverview} onClick={() => setShowOverview(true)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') setShowOverview(true) }}><span>𝓷𝓪̃𝓸 𝓼𝓸𝓾 𝓮𝓼𝓼𝓪𝓼 𝓹𝓪𝓵𝓪𝓿𝓻𝓪𝓼</span></div>
+          {shards.map((shard, index) => <article className={`${shard.cls}${!showOverview && activeFragment === index ? ' selected' : ''}`} key={shard.text} data-reveal tabIndex={0} role="button" aria-pressed={!showOverview && activeFragment === index} onClick={(event) => { event.currentTarget.focus({ preventScroll: true }); setActiveFragment(index); setShowOverview(false) }} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.currentTarget.focus({ preventScroll: true }); setActiveFragment(index); setShowOverview(false) } }}><span>{shard.text}</span></article>)}
+          <div className={`shard-core${showOverview ? ' selected' : ''}`} data-reveal tabIndex={0} role="button" aria-label="Imagem de uma mulher cercada por frases difíceis" aria-pressed={showOverview} onClick={(event) => { event.currentTarget.focus({ preventScroll: true }); setShowOverview(true) }} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.currentTarget.focus({ preventScroll: true }); setShowOverview(true) } }} />
         </div>
         <aside className="fragment-detail" aria-live="polite">
           {showOverview ? <>
