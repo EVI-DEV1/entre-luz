@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { createRoot } from 'react-dom/client'
 import './styles.css'
 
@@ -9,6 +9,14 @@ const shards = [
   { text: '“não sou suficiente”', theme: 'A medida impossível', reflection: 'A autocrítica transforma falhas em identidade. Você pode aprender com o que aconteceu sem usar isso como prova de que vale menos.', cls: 'shard shard-four' },
   { text: '“sou só um erro”', theme: 'Culpa não é sentença', reflection: 'Reconhecer escolhas e repará-las é diferente de se condenar. A responsabilidade pode virar caminho quando vem acompanhada de cuidado.', cls: 'shard shard-five' },
 ]
+
+type ChatMessage = { id: string; role: 'assistant' | 'user'; text: string }
+
+const initialChatMessage: ChatMessage = {
+  id: 'welcome',
+  role: 'assistant',
+  text: 'Oi, eu sou a Íris. Você não precisa organizar tudo para falar aqui. Posso te ajudar a respirar, colocar o que está pesado em palavras e pensar em um próximo passo pequeno.',
+}
 
 function useReveal() {
   useEffect(() => {
@@ -27,6 +35,11 @@ function App() {
   const [activeAdvice, setActiveAdvice] = useState(0)
   const [activeFragment, setActiveFragment] = useState(0)
   const [showOverview, setShowOverview] = useState(true)
+  const [chatOpen, setChatOpen] = useState(false)
+  const [chatInput, setChatInput] = useState('')
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([initialChatMessage])
+  const [chatSending, setChatSending] = useState(false)
+  const chatEndRef = useRef<HTMLDivElement>(null)
   const page = useRef<HTMLDivElement>(null)
   useReveal()
 
@@ -39,9 +52,39 @@ function App() {
     return () => window.removeEventListener('mousemove', onMove)
   }, [])
 
+  useEffect(() => {
+    if (chatOpen) chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }, [chatMessages, chatOpen])
+
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
     setMenuOpen(false)
+  }
+
+  const sendChatMessage = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const text = chatInput.trim()
+    if (!text || chatSending) return
+    const userMessage: ChatMessage = { id: `user-${Date.now()}`, role: 'user', text }
+    const conversation = [...chatMessages, userMessage].slice(-12).map(({ role, text: content }) => ({ role, content }))
+    setChatMessages((messages) => [...messages, userMessage])
+    setChatInput('')
+    setChatSending(true)
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: conversation }),
+      })
+      const data = await response.json() as { reply?: string }
+      if (!response.ok || !data.reply) throw new Error('chat_unavailable')
+      const reply = data.reply
+      setChatMessages((messages) => [...messages, { id: `assistant-${Date.now()}`, role: 'assistant', text: reply }])
+    } catch {
+      setChatMessages((messages) => [...messages, { id: `assistant-${Date.now()}`, role: 'assistant', text: 'Não consegui responder agora. Você pode tentar de novo em alguns instantes. Se estiver em risco ou sentindo que pode se machucar, ligue para o CVV no 188 ou para o SAMU no 192.' }])
+    } finally {
+      setChatSending(false)
+    }
   }
 
   const truths = [
@@ -189,6 +232,32 @@ function App() {
       </section>
     </main>
     <footer><span>Uma experiência de escuta e recomeço.</span><span>Feita para ser percorrida no seu tempo.</span></footer>
+    <div className="support-chat">
+      {chatOpen && <section className="chat-panel" aria-label="Conversa com Íris">
+        <header className="chat-header">
+          <div><span className="chat-presence" aria-hidden="true" /> <p>Íris · espaço de escuta</p><small>respostas de acolhimento, sem julgamento</small></div>
+          <button onClick={() => setChatOpen(false)} aria-label="Fechar conversa">×</button>
+        </header>
+        <div className="chat-notice">Íris usa IA para responder. Não compartilhe dados pessoais; este chat não substitui apoio profissional ou emergência.</div>
+        <div className="chat-messages" aria-live="polite">
+          {chatMessages.map((message) => <p className={`chat-bubble ${message.role}`} key={message.id}>{message.text}</p>)}
+          <div ref={chatEndRef} />
+        </div>
+        <div className="chat-actions" aria-label="Sugestões de conversa">
+          <button onClick={() => setChatInput('Estou me sentindo muito sozinha.')}>estou me sentindo só</button>
+          <button onClick={() => setChatInput('Minha ansiedade está muito alta.')}>a ansiedade está alta</button>
+        </div>
+        <form className="chat-form" onSubmit={sendChatMessage}>
+          <label className="sr-only" htmlFor="support-chat-input">Escreva o que está sentindo</label>
+          <input id="support-chat-input" value={chatInput} onChange={(event) => setChatInput(event.target.value)} placeholder="Escreva no seu tempo…" autoComplete="off" disabled={chatSending} maxLength={1600} />
+          <button type="submit" aria-label="Enviar mensagem" disabled={chatSending}>{chatSending ? '…' : '↑'}</button>
+        </form>
+        <p className="chat-crisis">Em risco imediato? Ligue <a href="tel:188">188</a> (CVV) ou <a href="tel:192">192</a> (SAMU).</p>
+      </section>}
+      <button className="chat-launcher" onClick={() => setChatOpen(!chatOpen)} aria-expanded={chatOpen} aria-controls="support-chat-input">
+        <span aria-hidden="true">✦</span>{chatOpen ? 'fechar Íris' : 'falar com Íris'}
+      </button>
+    </div>
   </div>
 }
 

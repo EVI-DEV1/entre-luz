@@ -20,3 +20,11 @@ npm run dev
 ```bash
 npm run build
 ```
+
+## Íris — chat de acolhimento
+
+Íris é um chat de acolhimento com IA. As mensagens só são enviadas após a pessoa aceitar o aviso de privacidade no próprio chat. Não há armazenamento de conversas neste projeto.
+
+Para ativá-la na Vercel, adicione a variável de ambiente `OPENAI_API_KEY` nas configurações do projeto. A chave fica apenas no servidor, na rota `api/chat.ts`, e nunca deve ser publicada no GitHub ou inserida no código do navegador. Use `.env.example` somente como referência local.
+
+Íris não substitui atendimento profissional ou emergência. O chat direciona situações de risco imediato para o CVV (188) e SAMU (192).
